@@ -35,12 +35,11 @@ def create_app(test_config=None):
 
         return current_items
 
-    # TODO: retest
     # An endpoint to handle GET requests for all available categories.
     @app.route('/categories', methods=['GET'])
     def get_categories():
         selection = Category.query.all()
-        categories = [category.type for category in selection]
+        categories = [category.format() for category in selection]
 
         if len(categories) == 0:
             abort(404)
@@ -58,7 +57,7 @@ def create_app(test_config=None):
     TEST: At this point, when you start the application
     you should see questions and categories generated,
     ten questions per page and pagination at the bottom of the screen for 
-    three pages.
+    two pages. Reference trivia.psql lines 126-145
     Clicking on the page numbers should update the questions. 
     '''
 
@@ -67,7 +66,7 @@ def create_app(test_config=None):
         selection = Question.query.order_by(Question.id).all()
 
         questions = paginate_questions(request, selection)
-        categories = [cat.format()['type'] for cat in Category.query.all()]
+        categories = [cat.format() for cat in Category.query.all()]
 
         if len(questions) == 0:
             abort(404)
@@ -169,14 +168,11 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that 
     category to be shown. 
     '''
-    # TODO: retest
+
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
     def get_questions_by_category(category_id):
         selection = Question.query.filter_by(category=category_id).all()
         questions = paginate_questions(request, selection)
-
-        print(category_id)
-        print(questions)
 
         if len(questions) == 0:
             abort(404)

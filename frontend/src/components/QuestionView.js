@@ -76,9 +76,20 @@ class QuestionView extends Component {
     })
   }
 
+  // Helper function for populating question categories
+  getCategory= (id) =>{
+    for( let i in this.state.categories){
+
+      if (this.state.categories[i]['id'] === id){
+        return this.state.categories[i]['type'];
+      }
+    }
+    return undefined;
+  }
+
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`, //TODO: update request URL
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -125,10 +136,13 @@ class QuestionView extends Component {
         <div className="categories-list">
           <h2 onClick={() => {this.getQuestions()}}>Categories</h2>
           <ul>
-            {Object.keys(this.state.categories).map((id, ) => (
-              <li key={id} onClick={() => {this.getByCategory(id)}}>
-                {this.state.categories[id]}
-                <img className="category" src={`${this.state.categories[id]}.svg`}/>
+            {Object.keys(this.state.categories).map((index, ) => (
+              <li key={this.state.categories[index]['id']}
+                  onClick={() => {
+                    this.getByCategory(this.state.categories[index]['id'])
+                  }}>
+                {this.state.categories[index]['type']}
+                <img className="category" src={`${this.state.categories[index]['type']}.svg`}/>
               </li>
             ))}
           </ul>
@@ -137,11 +151,11 @@ class QuestionView extends Component {
         <div className="questions-list">
           <h2>Questions</h2>
           {this.state.questions.map((q, ind) => (
-            <Question
+              <Question
               key={q.id}
               question={q.question}
               answer={q.answer}
-              category={this.state.categories[q.category]} 
+              category={this.getCategory(q.category)}
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
             />
