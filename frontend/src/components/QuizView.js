@@ -3,14 +3,14 @@ import $ from 'jquery';
 
 import '../stylesheets/QuizView.css';
 
-const questionsPerPlay = 5; 
+const questionsPerPlay = 5;
 
 class QuizView extends Component {
   constructor(props){
     super();
     this.state = {
         quizCategory: null,
-        previousQuestions: [], 
+        previousQuestions: [],
         showAnswer: false,
         categories: {},
         numCorrect: 0,
@@ -45,7 +45,9 @@ class QuizView extends Component {
 
   getNextQuestion = () => {
     const previousQuestions = [...this.state.previousQuestions]
-    if(this.state.currentQuestion.id) { previousQuestions.push(this.state.currentQuestion.id) }
+    if(this.state.currentQuestion.id) {
+        previousQuestions.push(this.state.currentQuestion.id)
+    }
 
     $.ajax({
       url: '/quizzes', //TODO: update request URL
@@ -64,7 +66,8 @@ class QuizView extends Component {
         this.setState({
           showAnswer: false,
           previousQuestions: previousQuestions,
-          currentQuestion: result.question,
+          // currentQuestion: result.question,
+          currentQuestion: result,
           guess: '',
           forceEnd: result.question ? false : true
         })
@@ -79,7 +82,8 @@ class QuizView extends Component {
 
   submitGuess = (event) => {
     event.preventDefault();
-    const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
+    const formatGuess =
+        this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
     let evaluate =  this.evaluateAnswer()
     this.setState({
       numCorrect: !evaluate ? this.state.numCorrect : this.state.numCorrect + 1,
@@ -90,7 +94,7 @@ class QuizView extends Component {
   restartGame = () => {
     this.setState({
       quizCategory: null,
-      previousQuestions: [], 
+      previousQuestions: [],
       showAnswer: false,
       numCorrect: 0,
       currentQuestion: {},
@@ -104,15 +108,19 @@ class QuizView extends Component {
           <div className="quiz-play-holder">
               <div className="choose-header">Choose Category</div>
               <div className="category-holder">
-                  <div className="play-category" onClick={this.selectCategory}>ALL</div>
-                  {Object.keys(this.state.categories).map(id => {
+                  <div className="play-category"
+                       onClick={this.selectCategory}>ALL</div>
+                  {Object.keys(this.state.categories).map(index => {
                   return (
                     <div
-                      key={id}
-                      value={id}
+                      key={this.state.categories[index]['id']}
+                      value={this.state.categories[index]['id']}
                       className="play-category"
-                      onClick={() => this.selectCategory({type:this.state.categories[id], id})}>
-                      {this.state.categories[id]}
+                      onClick={() =>
+                          this.selectCategory({
+                              type:this.state.categories[index]['type'],
+                              id: this.state.categories[index]['id']})}>
+                      {this.state.categories[index]['type']}
                     </div>
                   )
                 })}
@@ -132,7 +140,8 @@ class QuizView extends Component {
 
   evaluateAnswer = () => {
     const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
-    const answerArray = this.state.currentQuestion.answer.toLowerCase().split(' ');
+    const answerArray = this.state.currentQuestion.answer.toLowerCase();
+    // accept partial answers such as last names
     return answerArray.includes(formatGuess)
   }
 
@@ -152,7 +161,7 @@ class QuizView extends Component {
   renderPlay(){
     return this.state.previousQuestions.length === questionsPerPlay || this.state.forceEnd
       ? this.renderFinalScore()
-      : this.state.showAnswer 
+      : this.state.showAnswer
         ? this.renderCorrectAnswer()
         : (
           <div className="quiz-play-holder">
