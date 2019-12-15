@@ -22,6 +22,8 @@ def create_app(test_config=None):
     def after_request(response):
         response.headers.add('Access-Control-Allow-Methods',
                              'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers',
+                             'Content-Type,Authorization,true')
         return response
 
     # Helper function to paginate questions
@@ -193,23 +195,40 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not. 
     '''
-    # TODO: retest
+
     @app.route('/quizzes', methods=['POST'])
     def get_next_question():
-        previous_questions = request.json['previous_questions']
-        category = request.json['quiz_category']
 
-        questions = Question.query.filter(
-            ~Question.id.in_(previous_questions)). \
-            filter_by(category=category).all()
+        try:
+            previous_questions = request.json['previous_questions']
+            # Quiz category has 'type' and 'id' as keys
+            category = request.json['quiz_category']
 
-        question_list = [(query.question, query.answer) for query in questions]
-        question = random.choice(question_list)
+            if category['id'] == 0:
+                questions = Question.query. \
+                    filter(Question.id.notin_(previous_questions)).all()
+            else:
+                questions = Question.query. \
+                    filter_by(category=category['id']). \
+                    filter(Question.id.notin_(previous_questions)).all()
 
-        return jsonify({
-            'question': question[0],
-            'answer': question[1]
-        })
+            question_list = [(query.id, query.question, query.answer) for query
+                             in questions]
+
+            # Make sure we have questions else provide tuple of empty string
+            if len(question_list) > 0:
+                question = random.choice(question_list)
+            else:
+                question = ('', '', '')
+
+            return jsonify({
+                'id': question[0],
+                'question': question[1],
+                'answer': question[2]
+            })
+        except Exception as e:
+            print(str(e))
+            abort(404)
 
     ''' 
     Error handlers for all expected errors 
