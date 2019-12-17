@@ -68,6 +68,8 @@ def create_app(test_config=None):
         selection = Question.query.order_by(Question.id).all()
 
         questions = paginate_questions(request, selection)
+        current_category = [question['category'] for question in questions]
+        current_category = list(set(current_category))
         categories = [cat.format() for cat in Category.query.all()]
 
         if len(questions) == 0:
@@ -77,7 +79,7 @@ def create_app(test_config=None):
             'questions': questions,
             'total_questions': len(selection),
             'categories': categories,
-            'current_category': None,
+            'current_category': current_category,
         }), 200
 
     '''
